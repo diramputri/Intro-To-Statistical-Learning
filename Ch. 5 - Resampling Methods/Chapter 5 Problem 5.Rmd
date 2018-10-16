@@ -1,0 +1,98 @@
+---
+title: "Chapter 5 Problem 5"
+author: "Andira Putri"
+date: "September 20, 2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+#### a.) Fit a logistic regression model that uses `income` and `balance` to predict `default`.
+
+```{r}
+library(ISLR)
+data(Default)
+log.reg=glm(default~income+balance,data=Default,family=binomial)
+summary(log.reg) #just curious about the results
+```
+
+#### b.) Using the validation set approach, estimate the test error of this model. In order to this, you must perform the following steps.
+
+1. Split the data into a training set and validation set.
+2. Fit a multiple logistic regression model using only the training observations.
+3. Obtain a prediction of default status for each individual in the validation set by computing the posterior probability of default for that individual, and classifying the individual to the `default` category if the posterior probability is greater than 0.5.
+4. Compute the validation set error.
+
+```{r}
+#1. Split the data!
+set.seed(1)
+train = sample(10000,5000)
+#2. Fit logistic reg. model using training data!
+log.reg1=glm(default~income+balance,data=Default,family=binomial,subset=train)
+#3. Predict default status1
+valid=Default[-train,]
+log.prob1=predict(log.reg1,type="response")
+log.pred1=rep("No",nrow(valid))
+log.pred1[log.prob1>0.5]="Yes"
+#4. Compute the test error!
+table(log.pred1, valid$default)
+mean(valid$default != log.pred1)
+```
+
+#### c.) Repeat the process in (b) three times, using three different splits of the observations into a training set and validation set.
+
+```{r}
+#First repeat. Change seed each time.
+set.seed(2)
+train1 = sample(10000,5000)
+log.reg1=glm(default~income+balance,data=Default,family=binomial,subset=train1)
+valid1=Default[-train1,]
+log.prob1=predict(log.reg1,type="response")
+log.pred1=rep("No",nrow(valid1))
+log.pred1[log.prob1>0.5]="Yes"
+table(log.pred1, valid1$default)
+mean(valid1$default != log.pred1)
+
+#Second repeat
+set.seed(3)
+train = sample(10000,5000)
+log.reg1=glm(default~income+balance,data=Default,family=binomial,subset=train)
+valid=Default[-train,]
+log.prob1=predict(log.reg1,type="response")
+log.pred1=rep("No",nrow(valid))
+log.pred1[log.prob1>0.5]="Yes"
+table(log.pred1, valid$default)
+mean(valid$default != log.pred1)
+
+#Third repeat
+set.seed(4)
+train = sample(10000,5000)
+log.reg1=glm(default~income+balance,data=Default,family=binomial,subset=train)
+valid=Default[-train,]
+log.prob1=predict(log.reg1,type="response")
+log.pred1=rep("No",nrow(valid))
+log.pred1[log.prob1>0.5]="Yes"
+table(log.pred1, valid$default)
+mean(valid$default != log.pred1)
+```
+The test error rates are similar among all iterations. Perhaps the validation set approach is a good method to use for this data set in particular. 
+
+#### d.) Now consider a logistic regression model that predicts the probability of `default` using `income`, `balance`, and a dummy variable for `student`. Estimate the test error for this model using the validation set approach. Does including a dummy variable for `student` lead to a reduction in test error rate?
+
+```{r}
+#Create dummy variables
+set.seed(1)
+contrasts(Default$student)
+train=sample(10000,5000)
+valid=Default[-train,]
+log.reg2=glm(default~income+balance+student,data=Default,family=binomial,subset=train)
+log.prob2=predict(log.reg2,type="response")
+log.pred2=rep("No",nrow(valid))
+log.pred2[log.prob2>0.5]="Yes"
+table(log.pred2,valid$default)
+mean(valid$default !=log.pred2)
+
+
+```
+The `student` dummy variable did not impact the test error rate that much.

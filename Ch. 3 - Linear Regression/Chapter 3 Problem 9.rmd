@@ -1,0 +1,64 @@
+---
+title: "Chapter 3 Problem 9"
+author: "Andira Putri"
+output: pdf_document
+---
+
+#### This question involves using multiple linear regression on the `Auto` data set.
+
+#### a. Produce a scatterplot matrix which includes all the variables in the data set.
+
+```{r}
+library(ISLR)
+df=Auto
+pairs(df)
+```
+
+#### b. Compute the matrix of correlations between the variables
+
+```{r}
+auto=subset(df, select = -c(name) ) #exclude name
+cor(auto)
+```
+
+#### c. Use the lm() function to perform a multiple linear regression with mpg as the response and all other variables except name as predictors.
+
+```{r}
+lm.fit=lm(mpg~.,data=auto)
+summary(lm.fit)
+```
+
+* Is there a relationship between the predictors and the response?
+
+Yes! Some predictors are more significant than others...
+
+* Which predictors appear to have a statistically significant relationship to the response?
+
+Displacement, weight, year, origin (low p-values)
+
+* What does the coefficient for the year variable suggest?
+
+Since the coefficient is positive, newer cars have higher mpg
+
+#### d. Produce diagnostic plots of the linear regression fit. Comment on any problems you see with the fit. Do the residual plots suggest any unusually large outliers? Does the leverage plot identify any observations with unusually high leverage?
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm.fit)
+```
+
+There is a strong pattern in the Residuals vs. Fitted plot, which suggests non-linearity in the model. There are outliers, like point 323, but it's not too strong. Point 14 has very high leverage.
+
+#### e. Use the * and : symbols to fit linear regression models with interaction effects. Do any interactions appear to be statistically significant?
+
+
+```{r}
+lm.fit1=lm(mpg~weight*horsepower,data=auto)
+lm.fit2=lm(mpg~weight*acceleration,data=auto)
+lm.fit3=lm(mpg~horsepower*acceleration,data=auto)
+summary(lm.fit1) #Weight and horsepower
+summary(lm.fit2) #Weight and acceleration
+summary(lm.fit3) #Horsepower and acceleration
+```
+
+All models have statistically significant interaction terms.

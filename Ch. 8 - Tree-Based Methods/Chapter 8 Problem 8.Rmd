@@ -1,0 +1,122 @@
+---
+title: "Chapter 8 Problem 8"
+author: "Andira Putri"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+#### We seek to use the `Carseats` data set to predict `Sales` using regression trees and related approaches, treating the response as a qualitative variable.
+
+#### a.) Split the data into a training set and a test set.
+
+```{r}
+library(ISLR)
+data(Carseats) #contains 400 obsv.
+set.seed(1)
+train=sample(400,300) #300 obsv. for training
+train.set=Carseats[train,]
+test.set=Carseats[-train,] #100 obsv. for testing
+```
+
+#### b.) Fit a regression tree to the training set. Plot the tree, and interpret the results. What test MSE do you obtain?
+
+```{r}
+library(tree)
+car.tree=tree(Sales~.,train.set) #syntax close to lm()
+plot(car.tree,cex=0.3)
+text(car.tree,pretty=0,cex=0.65)
+```
+
+Based on branching patterns, it seems like the most important variable is ShelveLoc, or the quality of the shelving location. Then, the next important variable is carseat price.
+
+```{r}
+#Computing MSE
+predict=predict(car.tree,newdata=test.set) #yhat
+#pretty much using just the MSE formula
+MSE=mean((predict-test.set$Sales)^2)
+MSE
+```
+
+#### c.) Use cross-validation in order to determine the optimal level of tree complexity. Does pruning the tree improve the test MSE?
+
+```{r}
+cv=cv.tree(car.tree)
+names(cv)
+cv #dev = CV error rate
+#the lowest error rate results from 9 nodes
+prune=prune.tree(car.tree,best=9)
+plot(prune,cex=0.3)
+text(prune,pretty=0,cex=0.65)
+
+#Computing MSE
+predict=predict(prune,newdata=test.set) #yhat
+MSE=mean((predict-test.set$Sales)^2)
+MSE
+```
+
+9 nodes yields the best MSE. By pruning the tree, the MSE is reduced, but only by a little bit. This suggests that pruning the tree doesn't provide a significant impact when using the model on test data.
+
+#### d.) Use the bagging approach in order to analyze the data. What test MSE do you obtain? Use the `importance()` function to determine which variables are most important.
+
+As a personal note, decision trees suffer from high variance--averaging a set of observations is a way to reduce that variance. Bagging works by bootstrapping the training set B times. Then, it trains the method on the b-th bootstrapped training set in order to get a value: $\hat{f}^b(x)$. Finally, it averages all predictions to get:
+
+$\hat{f}(x)=\frac{1}{B}\sum_{b=1}^B \hat{f}^b(x)$
+
+Using a large value for B is not dangerous for overfitting...just make sure it is sufficiently large :)
+
+```{r}
+set.seed(1)
+library(randomForest)
+bag.car=randomForest(Sales~.,data=train.set,mtry=10,importance=TRUE)
+#mtry=11 b/c there are 10 predictors to consider
+bag.car
+
+#Computing MSE
+predict=predict(bag.car,newdata=test.set) #yhat
+MSE=mean((predict-test.set$Sales)^2)
+MSE
+```
+
+Our test MSE is 2.209486, which is greatly reduced from our previous two trees!
+
+```{r}
+plot(predict,test.set$Sales)
+abline(0,1)
+
+importance(bag.car)
+```
+
+The `importance()` function suggests that our most important variables are ShelveLoc and Price. This is because %IncMSE, aka mean decrease in accuracy, values are the highest for these particular variables. When ShelveLoc and Price are randomly permuted, they change the prediction much more than other predictors in the model. 
+
+#### e.) Use random forests to analyze the data. What test MSE do you obtain? Use the `importance()` function to determine which variables are most important. Describe the effect of m, the number of variables considered at each split, on the error rate obtained.
+
+Random forests decorrelate the trees. Each time a split is considered, `m` predictors are randomly chosen as split candidates from a full set of `p` predictors. In general, m=$\sqrt{p}$. If m=p, this is just bagging.
+
+```{r}
+set.seed(1)
+rf.car=randomForest(Sales~.,data=train.set,mtry=5,importance=TRUE)
+rf.car
+
+#Computing MSE
+predict=predict(rf.car,newdata=test.set) #yhat
+MSE=mean((predict-test.set$Sales)^2)
+MSE
+
+importance(rf.car)
+```
+
+The test MSE is 2.346116, which is higher than the bagging approach but only slightly. ShelveLoc and Price are still the most important predictors.
+
+How does test MSE change as m changes?
+```{r}
+for (i in 1:10){
+  rf.car.loop=randomForest(Sales~.,data=train.set,mtry=i,importance=TRUE)
+  predict=predict(rf.car.loop,newdata=test.set)
+  MSE[i]=mean((predict-test.set$Sales)^2)
+}
+
+plot(1:10,MSE,xlab="Variables considered per split")
+```
+
+From the plot, MSE greatly reduces as m increases from 1, starts leveling off at 6, and reaches a minimum at 8. We could make do with any `mtry` value 6 or greater.

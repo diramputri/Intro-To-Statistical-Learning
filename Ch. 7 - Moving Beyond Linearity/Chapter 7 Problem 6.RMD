@@ -1,0 +1,82 @@
+---
+title: "Chapter 7 Problem 6"
+author: "Andira Putri"
+output: pdf_document
+---
+
+In this exercise, you will further analyze the `Wage` data set considered throughout this chapter.
+
+#### a. Perform polynomial regression to predict wage using age. Use cross-validation to select the optimal degree d for the polynomial. What degree was chosen, and how does this compare to the results of hypothesis testing using ANOVA? Make a plot of the resulting polynomial fit to the data.
+
+```{r}
+set.seed(1)
+library(ISLR)
+data(Wage)
+
+#perform polynomial regression up to degree 5
+fit.1=lm(wage~age ,data=Wage) #linear
+fit.2=lm(wage~poly(age,2),data=Wage) #quadratic  
+fit.3=lm(wage~poly(age,3),data=Wage) #cubic
+fit.4=lm(wage~poly(age,4),data=Wage) #quartic
+fit.5=lm(wage~poly(age,5),data=Wage) #quintic
+anova(fit.1,fit.2,fit.3,fit.4,fit.5)
+```
+
+The linear and quadratic models are not sufficient because their p-values are close to 0. The quintic model has a rather high p-value at 0.37. The ANOVA table suggests that the cubic and quartic models are the best ones. Now, let's use cross-validation methods to pick the best among those two...
+
+```{r}
+set.seed(1)
+library(ISLR)
+library(boot)
+cv=rep(0,5)
+
+for (i in 1:5) {
+  fit=glm(wage~poly(age,i),data=Wage)
+  cv[i]=cv.glm(Wage,fit,K=5)$delta
+}
+
+plot(cv,type="b")
+```
+
+Cross-validation supports that the fourth-degree polynomial has the lowest estimated error.
+
+From both the ANOVA table and CV, we conclude that the quartic model is the best one.
+
+```{r}
+#Resulting plot
+library(ISLR)
+agelims=range(Wage$age)
+age.grid=seq(from=agelims[1],to=agelims[2])
+preds=predict(fit,newdata=list(age=age.grid),se=TRUE)
+plot(Wage$age,Wage$wage,xlim=agelims,cex=0.5,col="darkgrey")
+title("Degree 4 Polynomial Fit")
+lines(age.grid,preds$fit,lwd=2,col="red")
+
+```
+
+#### b. Fit a step function to predict wage using age, and perform cross validation to choose the optimal number of cuts. Make a plot of the fit obtained.
+
+```{r}
+set.seed(1)
+library(ISLR)
+data(Wage)
+cv = rep(0,9)
+for (i in 2:15) {
+  Wage$age.cut=cut(Wage$age,i)
+  step=glm(wage~age.cut,data=Wage)
+  cv[i-1]=cv.glm(Wage,step,K=5)$delta[1]
+}
+cv
+plot(2:15, cv, type="b",xlab="Number of Cuts")
+```
+
+
+With the plot, it seems like 8 is the best number of cuts.
+
+```{r}
+#Step Function Plot
+cut=glm(wage~cut(age,8), data=Wage)
+preds=predict(cut, newdata=list(age=age.grid), se=TRUE)
+plot(Wage$age, Wage$wage, xlim=agelims, cex=0.5, col="darkgrey")
+lines(age.grid, preds$fit, lwd=2, col="red")
+```

@@ -1,0 +1,47 @@
+---
+title: "Chapter 6 Problem 8"
+author: "Andira Putri"
+output: html_document
+---
+
+#### In this exercise, we will generate simulated data, and will then use this data to perform best subset selection.
+
+#### a.) Use the `rnorm` function to generate predictor X of length n=100, as well as a noise vector `eps` of length n=100.
+
+```{r}
+set.seed(1) #use this each time you use rnorm() to ensure reproducibility
+X=rnorm(100,0,1)
+eps=rnorm(100,0,1)
+```
+
+#### b.) Generate a response vector Y of length n=100 according to the model:
+$Y=\beta_0+\beta_1X+\beta_2X^2+\beta_3X^3+\epsilon$
+```{r}
+#the coefficients are constants of my choice
+Y=10+3*X+2.5*X^2+7.1*X^3+eps
+```
+
+#### c.) Use `regsubsets()` to perform best subset selection.
+```{r}
+library(leaps) #regsubsets() comes from leaps library
+df=data.frame(Y,X)
+bss=regsubsets(Y~poly(X,10),data=df,nvmax=10)
+summary=summary(bss)
+summary$cp #choose model with lowest Cp
+summary$bic #choose model with lowest BIC
+summary$adjr2 #choose model with highest adj R^2
+
+```
+
+#### d.)
+```{r}
+```
+
+#### e.)
+```{r}
+```
+
+#### f.)
+```{r}
+```
+

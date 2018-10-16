@@ -1,0 +1,59 @@
+---
+title: "Chapter 3 Problem 8"
+author: "Andira Putri"
+output: pdf_document
+---
+
+####
+
+#### a. Use the lm() function to perform a simple linear regression with mpg as the response and horsepower as the predictor. Comment on the output.
+
+```{r}
+library(ISLR)
+lm.fit=lm(mpg~horsepower,data=Auto)
+summary(lm.fit)
+```
+
+* Relationship between predictor and response?
+
+$H_o$: No relationship between horsepower & mpg. vs. $H_a$: There is a relationship between horsepower & mpg.
+
+We reject the null hypothesis. The low p-value associated with the horsepower parameter ($\beta_1$) suggests that there is a relationship between horsepower and mpg.
+
+* How strong is the relationship between the predictor and the response?
+
+r = sqrt(0.6059) = 0.7784
+
+The correlation coefficient indicates a strong relationship, though not conventionally the strongest.
+
+* Is the relationship between the predictor and the response positive or negative?
+
+There is a negative relationship. With a one-unit increase in horsepower, mpg decreases by 0.1578.
+
+* What is the predicted mpg with a horsepower of 98? What are the associated 95% CI and PI?
+
+Our model is: mpg = 39.9359 - 0.1578(horsepower)
+
+39.9359 - 0.1578(98) = 24.4715.
+
+
+```{r}
+predict(lm.fit, data.frame(horsepower=c(98)),interval="confidence") #CI
+predict(lm.fit, data.frame(horsepower=c(98)),interval="prediction") #PI
+```
+
+
+#### b. Plot the response and the predictor. Use the abline() function to display the least squares regression line.
+
+```{r}
+plot(Auto$horsepower,Auto$mpg,xlab="horsepower",ylab="mpg")
+abline(lm.fit,lwd=3,col="blue")
+```
+
+#### c. Use the plot() function to produce diagnostic plots of the least squares regression fit. Comment on any problems you see with the fit.
+
+```{r}
+plot(lm.fit)
+```
+
+From the Residuals vs. Leverage plot, we see that there are some high leverage points (94, 117). The Residuals vs. Fitted plot follows a quadratic pattern, which could suggest non-linearity

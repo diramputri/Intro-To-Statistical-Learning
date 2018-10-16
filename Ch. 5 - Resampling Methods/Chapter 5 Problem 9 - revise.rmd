@@ -1,0 +1,84 @@
+---
+title: "Chapter 5 Problem 9"
+author: "Andira Putri"
+output: pdf_document
+---
+
+#### We will now consider the `Boston` housing data set from the `MASS` library.
+
+```{r}
+set.seed(1)
+library(MASS)
+data(Boston)
+```
+
+#### a. Based on the data set, provide an estimate for the population mean of `medv`.
+We shall call this population mean $\hat{\mu}$.
+
+```{r}
+pop.mean<-mean(Boston$medv)
+pop.mean #mu hat
+```
+
+#### b. Provide an estimate of the standard error of the population mean. Interpret the result.
+
+Standard error is given by $\sigma=\frac{\sigma_{medv}}{\sqrt{n}}$, where $\sigma_{medv}$ is the standard deviation of the population.
+
+```{r}
+pop.se<-sd(Boston$medv)/sqrt(length(Boston$medv))
+pop.se
+```
+
+Our sample means vary from our population mean by 40.89%.
+
+#### c. Now estimate the standard error of the population mean using the bootstrap. How does this compare to your answer from part (b)?
+
+The bootstrap is an iterative cross-validation method that allows us to emulate the process of obtaining new sample sets so that we can estimate a quantity of a population, like mean and standard error. Basically, you are resampling a data set with replacement. When generating sample sets, bootstrap randomly takes observations from big data sets one at a time, and then it returns that point back to the data set so that it can be used in an estimation again.
+
+Bootstrap algorithm:
+
+1. Choose number of bootstrap sample sets
+
+2. Choose sample size
+
+3. Draw an observation from the original data set and replace it
+
+4. Calculate the statistic (mean, standard error, etc.) on the sample
+
+5. Take the average of the calculated statistics from part 4
+
+```{r}
+require(boot)
+set.seed(1)
+alpha.fn<-function(data,index){
+ val <-mean(data[index,])
+ return(val)
+}
+boot=boot(Boston$medv, alpha.fn,R=500)
+```
+
+#### d. Based on your bootstrap estimate from (c), provide a 95% confidence interval (CI) for the mean of `medv`. Compare it to the results obtained using `t.test(Boston$medv)`.
+
+```{r}
+```
+
+#### e. Based on the data set, provide an estimate of the median value of `medv` in the population.
+
+```{r}
+```
+
+#### f. We would like to estimate the standard error of the population median of `medv`. Unfortunately, there is no simple formula for computing the standard error of the median. Instead, estimate the standard error of the median using the bootstrap. Comment on your findings.
+
+```{r}
+```
+
+#### g. Based on the data set, provide an estimate for the tenth percentile of `medv` in Boston suburbs.
+
+```{r}
+```
+
+#### h. Use the bootstrap to estimate the standard error of the tenth percentile of `medv`. Comment on your findings.
+
+```{r}
+```
+

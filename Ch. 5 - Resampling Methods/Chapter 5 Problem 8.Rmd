@@ -1,0 +1,96 @@
+---
+title: "Chapter 5 Problem 8"
+author: "Andira Putri"
+date: "September 20, 2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+#### a.) Generate a simulated data set. What is *n* and *p*? Write the model used to generate data in equation form.
+
+```{r}
+set.seed(1)
+x=rnorm(100)
+y=x-(2*x^2)+rnorm(100)
+```
+Note to self: 'rnorm(n)' generates a vector of n pseudo-random normals with mean 0 and variance 1.
+
+* n=100
+* p=2
+* $Y = X - 2X^2 + \epsilon$
+
+
+#### b.) Create a scatterplot of X against Y. Comment on what you find.
+
+```{r}
+plot(x,y)
+```
+
+The plot resembles a bell curve, and it has an apparent quadratic form.
+
+#### c.) Set a random seed, and then compute the LOOCV errors that result from fitting four models using least squares.
+
+```{r}
+#Linear Model
+set.seed(3)
+degree=data.frame(y, x, x2=x^2, x3=x^3, x4=x^4)
+lin.fit=glm(y~x,data=degree)
+library(boot)
+cv.err=cv.glm(degree,lin.fit)
+cv.err$delta #produces cross-validation results
+#Quadratic Model
+quad.fit=glm(y~x+x2,data=degree)
+cv.err=cv.glm(degree,quad.fit)
+cv.err$delta 
+#Cubic Model
+cub.fit=glm(y~x+x2+x3,data=degree)
+cv.err=cv.glm(degree,cub.fit)
+cv.err$delta 
+#Quartic Model
+quar.fit=glm(y~x+x2+x3+x4,data=degree)
+cv.err=cv.glm(degree,quar.fit)
+cv.err$delta 
+
+#Alternatively could have used a for loop
+#Don't know why I didn't do that in the first place
+#Oh well
+
+cv.errors=rep(0,4) #initialize vector
+for (i in 1:4){
+  glm.fit=glm(y~poly(x,i),data=degree)
+  cv.errors[i]=cv.glm(degree,glm.fit)$delta[1]  #substitute value for error rate
+}  
+cv.errors
+
+```
+
+#### d.) Repeat (c) using another random seed, and report your results. Are your results the same as (c)? Why?
+
+```{r}
+set.seed(25)
+cv.errors2=rep(0,4)
+for (i in 1:4){
+  glm.fit=glm(y~poly(x,i),data=degree)
+  cv.errors2[i]=cv.glm(degree,glm.fit)$delta[1]
+}
+cv.errors2
+```
+
+The results are the same as (c). There isn't any randomness involved with training/validation splits in the LOOCV algorithm. It will always train n models with n-1 observations and reserve 1 observation for testing.
+
+#### e.) Which of the models in (c) had the smallest LOOCV error? Is this what you expected? Explain your answer.
+
+The quadratic model had the smallest LOOCV which is expected, since 'y' is generated via a quadratic equation.
+
+#### f.) Comment on the statistical significance of the coefficient estimates that results from fitting each of the models in (c) using least squares. Do these results agree with the conclusions drawn based on the cross-validation results?
+
+I will address only models with degree 2 or higher, since the linear model had a high test error rate.
+
+```{r}
+summary(quad.fit)
+summary(cub.fit)
+summary(quar.fit)
+```
+
+x3 has a p-value of 0.892, and x4 has a p-value of 0.193. These values are quite high, so it supports the evidence that the quadratic fit is the best one. Higher degrees are not necessary.

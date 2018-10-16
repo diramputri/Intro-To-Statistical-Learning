@@ -1,0 +1,65 @@
+---
+title: "Chapter 3 Problem 13"
+author: "Andira Putri"
+output: pdf_document
+---
+
+#### In this exercise, you will create some simulated data and will fit simple linear regression models to it.
+
+*Note - When working on problems that uses randomly-generated data sets, set.seed() reproduces the exact
+same set of random numbers. This ensures consistent results.
+
+#### a. Using the rnorm() function, create a vector x containing 100 observations drawn from a N(0,1) distribution. This represents a feature, X.
+
+```{r}
+set.seed(1)
+x=rnorm(100,0,1)
+```
+
+#### b. Using the rnorm() function, create a vector eps containing 100 observations drawn from a N(0,0.25) distribution.
+
+```{r}
+eps=rnorm(100,0,0.25)
+``` 
+
+#### c. Using x and eps, generate a vector y according to the model Y=-1+0.5X+??. What is the length of vector y? What are the values of the coefficients in the model?
+
+```{r}
+y=0.5*x-1+eps
+length(y) #length of y vector
+```
+
+$\beta_0=-1$ and $\beta_1=0.5$.
+
+#### d. Create a scatterplot displaying the relationship between x and y.
+
+```{r}
+plot(x,y)
+```
+
+#### e. Fit a least squares model to predict y using x. Comment on the model obtained. How do the estimated coefficients compare to those in part c?
+
+```{r}
+lm.fit=lm(y~x)
+summary(lm.fit)
+```
+
+The model suggests a strong relationship between x and y. The estimated coefficients are quite close to the actual $\beta_1$ and $\beta_0$ values in part c.
+
+#### f. Display the least squares and population regression line on the scatterplot in part d.
+
+```{r}
+plot(x,y)
+abline(-1,0.5,col="green",lwd=2) #population
+abline(lm.fit,col="red",lwd=3) #least squares
+legend("topleft",c("Population","Least Squares"),col=c("green","red"),lty=c(1,1))
+```
+
+#### g. Now fit a polynomial regression model that predicts y using x and x^2. Is there evidence that the quadratic term improves the model fit?
+
+```{r}
+lm.fitpoly=lm(y~x+I(x^2))
+summary(lm.fitpoly)
+```
+
+There is no evidence suggesting that the quadratic term improves the model fit, given its high p-value

@@ -1,0 +1,96 @@
+---
+title: "Chapter 4 Problem 11"
+author: "Andira Putri"
+date: "September 19, 2018"
+output: pdf_document: default
+---
+
+#### a. Create a binary variable `mpg01` that contains a 1 if `mpg` contains a value above its median.
+
+```{r}
+library(ISLR)
+data(Auto)
+med=median(Auto$mpg)
+mpg01=ifelse(Auto$mpg > med, 1, 0)
+auto2=data.frame(Auto,mpg01)
+```
+
+#### b. Explore the data graphically to investigate associations between `mpg01` and other features. What features might be helpful in predicting `mpg01`?
+
+```{r}
+pairs(auto2)
+```
+
+The features that are likely related to `mpg01` are `displacement`,`horsepower`,`weight`, and `acceleration`. These quantitative features also happen to show strong relationships with `mpg.`
+
+#### c. Split the data into training set and a test set.
+
+```{r}
+library(caTools)
+set.seed(2) #for reproducibility of results
+split=sample.split(auto2,SplitRatio=0.7) #70% training
+#creates vector with 70% TRUE and 30% FALSE
+#vector acts like a new column in auto2 set
+training=subset(auto2, split==TRUE)
+test=subset(auto2, split==FALSE)
+```
+
+#### d. Perform LDA and give test error.
+
+```{r}
+library(MASS)
+ldafit=lda(mpg01~displacement+horsepower+weight+acceleration,data=training)
+ldapred=predict(ldafit,test)
+names(ldapred)
+ldaclass=ldapred$class
+table(ldaclass,test$mpg01)
+```
+
+The test error is (1+11)/117 = 0.1026.
+
+#### e. Perform QDA and give test error.
+
+```{r}
+qda.fit=qda(mpg01~displacement+horsepower+weight+acceleration,data=training)
+qda.pred=predict(qda.fit,test)
+names(qda.pred)
+qda.class=qda.pred$class
+table(qda.class,test$mpg01)
+```
+
+The test error is (5+5)/117 = 0.0855.
+
+#### f. Perform logistic regression and give test error.
+
+```{r}
+logreg=glm(mpg01~displacement+horsepower+weight+acceleration,data=training,family=binomial)
+logprob=predict(logreg,test,type="response")
+logpred=rep("0",nrow(test)) #default pred is 0
+logpred[logprob>0.5]="1" #change to 1 if prob > 0.5
+table(logpred,test$mpg01)
+```
+
+The test error is (5+7)/117 = 0.1026.
+
+#### g. Perform KNN with different values of K and give test errors. Which value seems to perform the best?
+
+```{r}
+library(class)
+train.X <- as.matrix(training$displacement,training$horsepower,training$weight,training$acceleration)
+test.X <- as.matrix(test$displacement, test$horsepower,test$weight,test$acceleration)
+set.seed(2)
+knn.pred=knn(train.X,test.X,training$mpg01,k=1)
+mean(knn.pred != test$mpg01) #calculates error rate
+knn.pred2=knn(train.X,test.X,training$mpg01,k=5)
+mean(knn.pred2 != test$mpg01)
+knn.pred3=knn(train.X,test.X,training$mpg01,k=10)
+mean(knn.pred3 != test$mpg01)
+knn.pred4=knn(train.X,test.X,training$mpg01,k=20)
+mean(knn.pred4 != test$mpg01)
+knn.pred5=knn(train.X,test.X,training$mpg01,k=40)
+mean(knn.pred5 != test$mpg01)
+knn.pred6=knn(train.X,test.X,training$mpg01,k=100)
+mean(knn.pred6 != test$mpg01)
+```
+
+KNN performed the best when K=5.

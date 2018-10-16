@@ -1,0 +1,117 @@
+---
+title: "Chapter 4 Problem 10"
+author: "Andira Putri"
+date: "September 19, 2018"
+output:
+  pdf_document: default
+---
+
+#### a.) Produce some numerical and graphical summaries of the `Weekly` data. Do there appear to be any patterns?
+
+```{r}
+library(ISLR)
+summary(Weekly)
+pairs(Weekly)
+```
+
+Volume increases as year increases (positively correlated).
+
+#### b.) Use the full data set to perform a logistic regression with `Direction` as the response and the five lag variables plus `Volume` as predictors. Print the results. Which predictors are statistically significant?
+
+
+```{r}
+glm.fits=glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume,data=Weekly,family=binomial) 
+#glm fits a series of generalized linear models
+#'family=binomial' tells R to perform a logistic regression
+summary(glm.fits)
+```
+
+`Lag2` appears to be the only statistically significant predictor.
+
+#### c.) Compute the confusion matrix and overall fraction of correct predictions. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression.
+
+```{r}
+
+#outputs probabilities in the form P(Y=1|X)
+glm.probs=predict(glm.fits,type="response") 
+
+#generates dummy variables for Up and Down
+contrasts(Weekly$Direction)
+
+#create vector of 1089 "Down"" elements
+glm.pred=rep("Down",1089)
+
+#change "Down" to "Up" if probability exceeds 0.5
+glm.pred[glm.probs>0.5]="Up"
+
+#generates confusion matrix
+table(glm.pred,Weekly$Direction)
+```
+
+There are 611 correct classifications out of a total 1089 observations, so the accuracy is 611/1089 = 0.561. In particular, the Up accuracy, with 557 correct predictions on 605 total Up observations, is 557/605 = 0.92. The Down accuracy, with 54 correct predictions on 484 total Down observations, is 54/484 = 0.11, which is pretty bad. Perhaps changing the probability threshold could improve the accuracy.
+
+#### d.) Fit the logistic regression model using a training data period from 1990 to 2008, with `Lag2` as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data (2009-2010).
+
+```{r}
+#split the Weekly data set and perform logistic regression
+training<-Weekly[Weekly$Year<=2008,]
+test<-Weekly[Weekly$Year>2008,]
+logreg=glm(Direction~Lag2,data=training,family=binomial)
+summary(logreg)
+
+#Make predictions on our test data with our classifier
+glm.probs2=predict(logreg,test,type="response")
+contrasts(test$Direction) 
+glm.pred=rep("Down",nrow(test)) 
+glm.pred[glm.probs2>0.5]="Up"
+table(glm.pred,test$Direction)
+```
+
+1. Total accuracy: (9+56)/104 = 0.625
+2. Up accuracy: 56/(56+5) = 0.918
+3. Down accuracy: 9/(34+9) = 0.209
+
+#### e.) Repeat (d) using LDA.
+
+```{r}
+library(MASS)
+lda.fit=lda(Direction~Lag2,data=training)
+lda.fit
+lda.pred=predict(lda.fit,test)
+names(lda.pred)
+lda.class=lda.pred$class
+table(lda.class,test$Direction)
+```
+
+The confusion matrix is the exact same as the one given by logistic regression.
+
+#### f.) Repeat (d) using QDA.
+
+```{r}
+library(MASS)
+qda.fit=qda(Direction~Lag2,data=training)
+qda.fit
+qda.pred=predict(qda.fit,test)
+names(qda.pred)
+qda.class=qda.pred$class
+table(qda.class,test$Direction)
+```
+
+QDA correctly predicted all Up directions, but incorrectly predicted all Down directions. The total accuracy is 0.5.
+
+#### g.) Repeat (d) using KNN, K=1.
+
+```{r}
+library(class)
+train.X <- as.matrix(training$Lag2)
+test.X <- as.matrix(test$Lag2)
+set.seed(1)
+knn.pred<-knn(train.X,test.X,training$Direction,k=1)
+table(knn.pred,test$Direction)
+```
+
+The total accuracy is (21+31)/104 = 0.5.
+
+#### h.) Which of these methods provide the best results on this data?
+
+Logistic regression and LDA prove to be equally the best methods.

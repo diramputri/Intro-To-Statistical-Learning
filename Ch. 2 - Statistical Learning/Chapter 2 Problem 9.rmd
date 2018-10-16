@@ -1,0 +1,59 @@
+---
+title: "Chapter 2 Problem 9"
+author: "Andira Putri"
+output: pdf_document
+---
+
+#### The exercise involves the `Auto` data set studied in the lab. Make sure that the missing values have been removed from the data.
+
+```{r}
+#Remove missing values from data
+library(ISLR)
+data=Auto
+auto=na.omit(Auto)
+```
+
+#### a. Which of the predictors are quantitative, and which are qualitative?
+
+All predictors except name and origin are quantitative. It's clear as to why that is from the summary of the `Auto` data.
+
+```{r}
+summary(auto)
+```
+
+#### b. What is the range of each quantitative predictor?
+
+```{r}
+sapply(auto[,1:7], range) #range
+```
+
+#### c. What is the mean and standard deviation of each quantitative predictor?
+
+```{r}
+sapply(auto[,1:7], mean) #means
+sapply(auto[,1:7], sd) #standard deviations
+```
+
+#### d. Now, remove the 10th through 85th observations. What is the range, mean, and standard deviation of each predictor in the subset of the data that remains?
+
+```{r}
+#Delete 10th to 85th observations
+auto2=auto[-(10:85),]
+sapply(auto2[,1:7], range) #range
+sapply(auto2[,1:7], mean) #means
+sapply(auto2[,1:7], sd) #standard deviations
+```
+
+#### e. Using the full data set, investigate predictors graphically using scatterplots or other tools of your choice. Create some plots highlighting the relationships among the predictors. Comment on your findings.
+
+```{r}
+pairs(auto[,1:7])
+```
+
+Positive correlations: mpg with years
+
+Negative correlations: mpg with displacement, horsepower, weight
+
+#### f. Suppose that we wish to predict the gas mileage based on other variables. Do your plots suggest that any of the other variables might be useful in predicting mpg? Justify your answer.
+
+Yes, we were able to see relationships between mpg and other predictors (see above).
